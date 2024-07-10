@@ -1,0 +1,129 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertCircle, CheckCircle, User } from 'lucide-react';
+
+const studentsData = [
+  // Données des étudiants...
+];
+
+const StudentProgressDashboard = () => {
+  const [selectedStudent, setSelectedStudent] = useState(studentsData[0]);
+
+  const overallProgress = (student) => {
+    const total = student.activeListening.completed + student.assertiveness.completed;
+    return Math.round((total / 6) * 100);
+  };
+
+  const chartData = studentsData.map(student => ({
+    name: student.name,
+    "Écoute active": (student.activeListening.completed / student.activeListening.total) * 100,
+    "Affirmation": (student.assertiveness.completed / student.assertiveness.total) * 100,
+  }));
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-green-100 py-8">
+      <div className="max-w-6xl mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-6 text-center text-blue-800">
+          Tableau de Bord de Progression en Communication
+        </h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="md:col-span-2">
+            <CardHeader className="bg-blue-500 text-white">
+              <CardTitle className="text-2xl">Progression de la Classe</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={chartData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" domain={[0, 100]} />
+                  <YAxis dataKey="name" type="category" width={100} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="Écoute active" fill="#8884d8" />
+                  <Bar dataKey="Affirmation" fill="#82ca9d" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="bg-green-500 text-white">
+              <CardTitle className="text-2xl">Sélection d'Étudiant</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <ul className="space-y-2">
+                {studentsData.map(student => (
+                  <li 
+                    key={student.id} 
+                    className={`p-2 rounded cursor-pointer flex items-center ${selectedStudent.id === student.id ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
+                    onClick={() => setSelectedStudent(student)}
+                  >
+                    <User className="mr-2" />
+                    {student.name}
+                    <Badge className="ml-auto" variant={overallProgress(student) === 100 ? 'success' : 'default'}>
+                      {overallProgress(student)}%
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+        <Card className="mt-6">
+          <CardHeader className="bg-purple-500 text-white">
+            <CardTitle className="text-2xl flex items-center">
+              <User className="mr-2" />
+              Progression de {selectedStudent.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <Tabs defaultValue="overview">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+                <TabsTrigger value="scenarios">Scénarios détaillés</TabsTrigger>
+              </TabsList>
+              <TabsContent value="overview" className="mt-4">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">Écoute Active</h3>
+                    <Progress value={(selectedStudent.activeListening.completed / selectedStudent.activeListening.total) * 100} className="h-4" />
+                    <p className="text-sm text-gray-600 mt-1">
+                      {selectedStudent.activeListening.completed} sur {selectedStudent.activeListening.total} scénarios complétés
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Affirmation et Collaboration</h3>
+                    <Progress value={(selectedStudent.assertiveness.completed / selectedStudent.assertiveness.total) * 100} className="h-4" />
+                    <p className="text-sm text-gray-600 mt-1">
+                      {selectedStudent.assertiveness.completed} sur {selectedStudent.assertiveness.total} scénarios complétés
+                    </p>
+                  </div>
+                </div>
+              </TabsContent>
+              <TabsContent value="scenarios" className="mt-4">
+                <ul className="space-y-2">
+                  {selectedStudent.scenarios.map((scenario, index) => (
+                    <li key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="flex items-center">
+                        {scenario.status === "Réussi" ? <CheckCircle className="text-green-500 mr-2" /> : <AlertCircle className="text-yellow-500 mr-2" />}
+                        {scenario.type}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {scenario.status === "Réussi" ? scenario.date : "Non complété"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default StudentProgressDashboard;
